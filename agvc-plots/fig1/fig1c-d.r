@@ -10,7 +10,7 @@ for (panel in c('c', 'd')) {
     ggplot(df) +
         geom_bar(aes(ref_dosage, perc, fill = factor(ref_dosage)), stat = 'identity') +
         facet_grid(. ~ group) +
-        scale_x_continuous('Reference allele dosage',
+        scale_x_continuous('Allele dosage',
             expand = expansion(add = 0.2), breaks = 0:4,
             labels = function (x) sprintf('%d/4', x)) +
         scale_y_continuous(expand = expansion(add = c(1, 5))) +
