@@ -13,7 +13,8 @@ load_gts <- function(filename) {
         separate('ad', sep = ',', into = c('ad0', 'ad1', 'ad2'),
             convert = T, fill = 'right') |>
         mutate(
-            ac0 = as.character(str_count(gt, '0')),
+            qual = suppressWarnings(as.numeric(qual)),
+            ac0 = str_count(gt, '0'),
             cn = str_count(gt, '/') + 1,
             ad1 = ad1 + replace_na(ad2, 0),
             af0 = ad0 / (ad0 + ad1),
@@ -21,19 +22,21 @@ load_gts <- function(filename) {
 }
 
 gts <- load_gts('NCF1-GTGT.csv.gz')
+#filter(gts, qual >= 10) |> count(cn) |> mutate(perc = 100 * n / sum(n))
 
 gts2 <- filter(gts, qual >= 10) |>
     count(pop, ac0) |>
     group_by(pop) |> mutate(perc = 100 * n / sum(n)) |> ungroup() |>
     complete(pop, ac0, fill = list(n = 0, perc = 0))
 
-fill_colors <- c('1' = '#001219', '2' = '#005f73', '3' = '#ca6702', '4' = '#ae2012')
-(zoomed <- ggplot(filter(gts2, ac0 != '2')) +
-    geom_bar(aes(pop, perc, fill = ac0, group = ac0),
+fill_colors <- c('#001219', '#005f73', '#ca6702', '#ae2012') |>
+    setNames(as.character(1:4))
+(zoomed <- ggplot(filter(gts2, ac0 != 2)) +
+    geom_bar(aes(pop, perc, fill = factor(ac0), group = ac0),
         stat = 'identity', position = position_dodge(width = 0.9),
         color = NA) +
     scale_y_continuous(NULL,
-        breaks = seq(0, 100, 3), minor_breaks = NULL, # seq(0, 0.05, 0.01),
+        breaks = seq(0, 100, 3), minor_breaks = NULL,
         expand = c(0, 0)) +
     scale_x_discrete(NULL, expand = expansion(add = 0.48)) +
     scale_fill_manual(values = fill_colors) +
@@ -53,8 +56,8 @@ fill_colors <- c('1' = '#001219', '2' = '#005f73', '3' = '#ca6702', '4' = '#ae20
         breaks = seq(0, 100, 20),
         expand = c(0, 0), limits = c(0, 100)) +
     scale_x_discrete(NULL, expand = expansion(add = 0.48)) +
-    scale_fill_manual('Allele dosage', values = fill_colors,
-        labels = function(x) sprintf('%s/K', x)) +
+    scale_fill_manual('GTGT allele dosage', values = fill_colors,
+        labels = function(x) sprintf('%s/6', x)) +
     theme_bw() +
     theme(
         text = element_text(family = 'Carlito'),
@@ -62,6 +65,7 @@ fill_colors <- c('1' = '#001219', '2' = '#005f73', '3' = '#ca6702', '4' = '#ae20
         panel.grid = element_blank(),
         legend.position = 'top',
         legend.key.size = unit(0.5, 'lines'),
+        legend.title = element_text(margin = margin(r = 8), vjust = 0.8),
         legend.text = element_text(family = 'Fira Sans Condensed',
             size = 8.5, margin = margin(l = 3, r = 4))
     ))
@@ -72,13 +76,14 @@ legend <- cowplot::get_plot_component(full, 'guide-box', return_all = T)
 gts_wes <- load_gts('WES-NCF1-GTGT.csv.gz')
 filt_gts_wes <- filter(gts_wes, ad0 <= 500 & cn == 6)
 
-colors <- c('#001219', '#0a9396', '#ee9b00', '#ae2012')
+colors <- c('#001219', '#0a9396', '#ee9b00', '#ae2012') |>
+    setNames(as.character(1:4))
 (dotplot <- ggplot(filt_gts_wes) +
     geom_abline(slope = 5:2 / 1:4, color = colors, linewidth = 1.4, alpha = 0.3) +
-    geom_point(aes(ad0, ad1, color = ac0, shape = qual < 10), size = 1.) +
+    geom_point(aes(ad0, ad1, color = factor(ac0), shape = qual < 10), size = 1.) +
     scale_x_continuous('Reads supporting GTGT allele') +
     scale_y_continuous('Reads supporting GT allele') +
-    scale_color_manual('Allele dosage',
+    scale_color_manual('GTGT allele dosage',
         values = colors, labels = function(x) sprintf('%s/6', x)) +
     scale_shape_manual('Quality', values = c(19, 4), labels = c('High', 'Low')) +
     guides(
@@ -93,29 +98,19 @@ colors <- c('#001219', '#0a9396', '#ee9b00', '#ae2012')
         legend.box = 'vertical',
         legend.spacing.y = unit(-0.25, 'lines'),
         legend.box.margin = margin(t = -4, b = -4),
-        legend.margin = margin(),
+        legend.margin = margin(r = 20),
         legend.background = element_blank(),
         # legend.title = element_text(margin = margin()),
         legend.text = element_text(
             family = 'Fira Sans Condensed', size = 8.5,
-            margin = margin(l = -3, r = -3)),
+            margin = margin(l = -3, r = -2)),
     ))
 
 ggdraw(xlim = c(0, 3.3), ylim = c(0, 1)) +
     draw_plot(full + theme(legend.position = 'none'),
-        x = 0, y = 0.06, width = 0.95, height = 0.93) +
-    draw_plot(zoomed, x = 1.05, y = 0.06, width = 0.95, height = 0.93) +
-    draw_plot(legend, x = 0.8, y = 0., width = 0.4, height = 0.08) +
-    draw_plot(dotplot, x = 2, y = 0, width = 1.3, height = 1) +
-    annotate('segment', x = 0.95, xend = 1.05, y = 0.121, yend = 0.121,
-        color = 'gray40', linetype = '32') +
-    annotate('segment', x = 0.95, xend = 1.05, y = 0.248, yend = 0.96,
-        color = 'gray40', linetype = '32')
-ggdraw(xlim = c(0, 3.3), ylim = c(0, 1)) +
-    draw_plot(full + theme(legend.position = 'none'),
         x = 0, y = 0.06, width = 1.0, height = 0.93) +
     draw_plot(zoomed, x = 1.1, y = 0.06, width = 0.9, height = 0.93) +
-    draw_plot(legend, x = 0.85, y = 0., width = 0.4, height = 0.08) +
+    draw_plot(legend, x = 0.85, y = -0.005, width = 0.4, height = 0.08) +
     draw_plot(dotplot, x = 2, y = 0, width = 1.3, height = 1) +
     annotate('segment', x = 1.0, xend = 1.1, y = 0.121, yend = 0.121,
         color = 'gray40', linetype = '32') +
