@@ -1,0 +1,38 @@
+pos	ref	alt	type	impact	ac	ac_pcgc
+130593026	CG	C	frameshift	Ala175fs	13	12
+130597532	GC	GTC	frameshift	Ala145fs	0	2
+130592959	GCGGGCGCATC	G	frameshift	Asp194fs	1
+130592974	CGCAGGAGGCGGT	C	deletion	His188_Leu191del	2
+130593026	CG	CCC	frameshift	Ala175fs	1
+130597969	CCGCGCGGA	C	frameshift	Ser85fs	1
+130597962	AGCGCGGCC	A	frameshift	Arg87fs	0	1
+130597522	G	T	stop-gained	Cys148*	1
+130598731	C	T	stop-gained	Trp53*	1	1
+130592899	G	C	missense	Pro217Arg	18
+130593026	C	T	missense	Ala175Thr	9
+130593065	A	G	missense	Phe162Leu	22
+130593067	T	G	missense	Asp161Ala	2
+130597505	G	A	missense	Pro154Leu	2
+130597512	G	T	missense	Gln152Lys	2
+130597578	C	G	missense	Ala130Pro	1
+130598671	G	A	missense	Pro73Leu	2
+130598717	A	G	missense	Phe58Leu
+130592901	C	A	missense	Arg216Ser	1
+130592918	G	A	missense	Arg211Trp	5
+130592921	C	T	missense	Glu210Lys	1
+130592933	C	T	missense	Val206Ile	1	
+130592953	G	A	missense	Pro199Leu	2
+130592962	G	A	missense	Pro196Leu	2
+130592971	G	A	missense	Pro193Leu	1
+130593035	C	T	missense	Ala172Thr	2
+130593045	G	C	missense	His168Gln	1
+130597557	G	A	missense	His137Tyr	1
+130597887	C	G	missense	Glu115Gln	2
+130597916	C	A	missense	Cys105Phe	1
+130598713	C	T	missense	Gly59Glu	1
+130598771	T	C	missense	Lys40Glu	1
+130599281	A	C	missense	Trp3Gly	2
+130598657	G	A	missense	Arg78Trp	58
+130598749	C	T	missense	Arg47Gln	183
+130598922	T	G	missense	Asn21His	165
+130597533	C	T	missense	Ala145Thr	629

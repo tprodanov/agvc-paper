@@ -10,6 +10,8 @@ suppressMessages(library(tibble))
 suppressMessages(library(stringr))
 suppressMessages(library(colorspace))
 
+stringr::str_dup(c('A', 'a'), times = c(3, 2)) |> paste0(collapse = '')
+
 Sys.setenv('VROOM_CONNECTION_SIZE' = 131072 * 10)
 
 load_vcf <- function(filename) {
@@ -63,8 +65,6 @@ get_ac_matrix <- function(vcf) {
     ac_matrix2
 }
 
-# ------ Dataset ------
-
 vcf <- load_vcf('SMN1-AFR.vcf.gz')
 ac_matrix <- get_ac_matrix(vcf)
 
@@ -101,10 +101,11 @@ ac_long <- as.data.frame(ac_matrix2) |>
     mutate(
         var = ifelse(var == TAG_PSV, sprintf('%s%s%s', '  ', var, ' ∗'), var),
         var = factor(var, levels = unique(var)),
-        dosage = sprintf('%d/%d', ref, ref + alt)
+        dosage = sprintf('%d/%d', ref, ref + alt),
+        genotype = paste0(str_dup('A', times = ref), str_dup('a', times = alt)),
     )
 panel_sizes <- count(ac_long, var, cn, name = 'panel_size')
-bars <- count(ac_long, var, dosage, ref, cn, name = 'bar_size') |>
+bars <- count(ac_long, var, dosage, genotype, ref, cn, name = 'bar_size') |>
     left_join(panel_sizes, join_by(var, cn)) |>
     mutate(perc = 100 * bar_size / panel_size)
 
@@ -132,5 +133,6 @@ ggplot(bars) +
         strip.background = element_rect(color = NA, fill = 'gray90'),
         strip.text = element_text(margin = margin(2, 2, 2, 2)),
         legend.position = 'none',
+        # axis.text.x = element_text(family = 'Fira Sans Condensed', size = 8),
     )
 ggsave('fig5.svg', width = 8, height = 5, scale = 0.75)
