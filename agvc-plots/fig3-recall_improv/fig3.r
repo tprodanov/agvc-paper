@@ -1,6 +1,6 @@
 #!/usr/bin/env Rscript
-
 pdf(NULL)
+
 suppressMessages(library(dplyr))
 suppressMessages(library(tidyr))
 suppressMessages(library(ggplot2))
@@ -10,12 +10,12 @@ filenames <- Sys.glob('evals/*.csv.gz')
 
 full_roc <- lapply(filenames,
     function(filename) read.csv(filename, sep = '\t', comment = '#') |>
-        mutate(filename = filename)) %>%
+        mutate(filename = basename(filename))) %>%
     do.call(rbind, .)
 
 # Splitting filenames
 full_roc2 <- mutate(full_roc,
-    filename = sub('.csv.gz$', '', filename) %>% sub('evals/', '', .) %>% sub('parascopy', 'parascopy.NA', .)) |>
+    filename = sub('.csv.gz$', '', filename) %>% sub('parascopy', 'parascopy.NA', .)) |>
     separate(filename, c('sample', 'tool', 'tool_qual', 'cn'))
 
 # Trust Parascopy qual column, for other tools, use quality from the `QX` part of the filename.
