@@ -22,7 +22,6 @@ load_gts <- function(filename) {
 }
 
 gts <- load_gts('NCF1-GTGT.csv.gz')
-#filter(gts, qual >= 10) |> count(cn) |> mutate(perc = 100 * n / sum(n))
 
 gts2 <- filter(gts, qual >= 10) |>
     count(pop, ac0) |>
@@ -57,7 +56,7 @@ fill_colors <- c('#001219', '#005f73', '#ca6702', '#ae2012') |>
         expand = c(0, 0), limits = c(0, 100)) +
     scale_x_discrete(NULL, expand = expansion(add = 0.48)) +
     scale_fill_manual('GTGT allele dosage', values = fill_colors,
-        labels = function(x) sprintf('%s/6', x)) +
+        labels = function(x) sprintf('%s/K', x)) +
     theme_bw() +
     theme(
         text = element_text(family = 'Carlito'),
@@ -110,7 +109,7 @@ ggdraw(xlim = c(0, 3.3), ylim = c(0, 1)) +
     draw_plot(full + theme(legend.position = 'none'),
         x = 0, y = 0.06, width = 1.0, height = 0.93) +
     draw_plot(zoomed, x = 1.1, y = 0.06, width = 0.9, height = 0.93) +
-    draw_plot(legend, x = 0.85, y = -0.005, width = 0.4, height = 0.08) +
+    draw_plot(legend, x = 0.7, y = -0.005, width = 0.4, height = 0.08) +
     draw_plot(dotplot, x = 2, y = 0, width = 1.3, height = 1) +
     annotate('segment', x = 1.0, xend = 1.1, y = 0.121, yend = 0.121,
         color = 'gray40', linetype = '32') +

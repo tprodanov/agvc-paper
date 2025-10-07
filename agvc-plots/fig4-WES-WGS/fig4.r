@@ -149,14 +149,15 @@ point_color <- '#004529'
         text = element_text(family = 'Carlito'),
         panel.border = element_blank(),
         panel.grid = element_blank(),
-        plot.margin = margin(t = 5, r = 2, b = 1, l = 10),
+        plot.margin = margin(t = 5, r = 2, b = 1, l = 7),
     ))
 
 cowplot::plot_grid(g_ev, g_af,
-    rel_widths = c(0.53, 0.47),
+    rel_widths = c(0.57, 0.43),
     labels = letters,
     label_fontfamily = 'Carlito',
     label_y = 1.01,
     label_x = c(0, 0)
     )
-ggsave('concordance.svg', bg = 'white', width = 9.8, height = 5, dpi = 500, scale = 0.7)
+ggsave('concordance.svg', bg = 'white', width = 10, height = 5, dpi = 500, scale = 0.7)
+
