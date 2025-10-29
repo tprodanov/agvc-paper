@@ -55,6 +55,8 @@ nvars <- filter(roc, tool == 'Parascopy' & psv_type != 'Trivial PSVs') |>
     ungroup() |>
     mutate(metric = 'Recall')
 
+FONT <- 'Source Sans 3'
+
 draw_plot <- function(df, sample) {
     colors <- c('#5576A0', '#EF7747', '#FFDD87')
     w <- 0.9; u <- w / 2
@@ -66,7 +68,7 @@ draw_plot <- function(df, sample) {
         geom_text(aes(3.95, 0.02,
             label = sprintf('%s variants', scales::label_comma(precision = 0)(total))),
             data = filter(nvars, sample == s),
-            family = 'Carlito', angle = -90, vjust = 1, hjust = 1, size = 3) +
+            family = FONT, angle = -90, vjust = 1, hjust = 1, size = 3) +
         facet_nested(difficulty ~ psv_type + metric, scales = 'free', space = 'free') +
         scale_fill_manual('Variant caller', values = colors) +
         scale_x_continuous(NULL,
@@ -78,7 +80,7 @@ draw_plot <- function(df, sample) {
         ggtitle(NULL, subtitle = sample) +
         theme_bw() +
         theme(
-            text = element_text(family = 'Carlito'),
+            text = element_text(family = FONT),
             axis.title.y = element_text(size = 10, margin = margin(r = 2)),
             axis.text.x = element_text(size = 8, angle = 45, hjust = 1, vjust = 1),
             axis.text.y = element_text(vjust = c(0, 0.5, 0.5, 0.5, 0.5, 1)),
@@ -88,8 +90,8 @@ draw_plot <- function(df, sample) {
             panel.grid.major.x = element_blank(),
             panel.grid.major.y = element_blank(),
             panel.border = element_rect(color = NA),
-            strip.background = element_rect(color = 'gray80', fill = 'gray80'),
-            strip.text = element_text(size = 8, margin = margin(2, 2, 2, 2), color = 'black'),
+            strip.background = element_rect(color = 'gray90', fill = 'gray90'),
+            strip.text = element_text(size = 8, margin = margin(t = 1, b = 1, l = 2, r = 2), color = 'black'),
             legend.position = 'none',
             legend.key.size = unit(0.8, 'lines'),
             legend.margin = margin(b = -4, t = 0),
@@ -105,8 +107,19 @@ draw_plot <- function(df, sample) {
 cowplot::plot_grid(
     draw_plot(roc_long2, 'HG007'),
     draw_plot(roc_long2, 'Simulated'),
-    labels = letters, label_fontfamily = 'Carlito',
+    labels = letters, label_fontfamily = FONT,
     label_x = 0.02, label_y = 1.004
     ) |>
     suppressWarnings()
 ggsave('barplot.svg', width = 10, height = 6, scale = 0.7)
+
+# filter(roc_long2, sample == 'Simulated', difficulty != 'All duplications') |>
+#     mutate(value = round(value, 2))
+# 
+# filter(roc_long2, sample == 'Simulated' & tool == 'GATK') |>
+#     mutate(value = round(value, 2))
+# 
+# filter(roc_long2, sample %in% c('Simulated', 'HG007') &
+#         difficulty == 'All duplications' & tool == 'Freebayes') |>
+#     mutate(value = round(value, 2)) |>
+#     arrange(psv_type, metric, desc(sample))

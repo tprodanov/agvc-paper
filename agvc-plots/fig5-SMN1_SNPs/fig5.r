@@ -10,9 +10,9 @@ suppressMessages(library(tibble))
 suppressMessages(library(stringr))
 suppressMessages(library(colorspace))
 
-stringr::str_dup(c('A', 'a'), times = c(3, 2)) |> paste0(collapse = '')
-
 Sys.setenv('VROOM_CONNECTION_SIZE' = 131072 * 10)
+
+add_comma <- function(s) { format(as.numeric(s), big.mark = ',') }
 
 load_vcf <- function(filename) {
     vcf <- suppressMessages(read_delim(filename, '\t', comment = '##'))
@@ -59,7 +59,7 @@ get_ac_matrix <- function(vcf) {
         aperm(c(2, 3, 1))
     # Vars, Samples, REF/ALT
     dimnames(ac_matrix2) <- list(
-        format(vcf$POS, big.mark=','),
+        add_comma(vcf$POS),
         samples,
         c('Ref', 'AnyAlt', 'Qual'))
     ac_matrix2
@@ -67,6 +67,9 @@ get_ac_matrix <- function(vcf) {
 
 vcf <- load_vcf('SMN1-AFR.vcf.gz')
 ac_matrix <- get_ac_matrix(vcf)
+
+pos2 <- with(vcf,
+    setNames(sub('.*pos2=[^:]+:([0-9]+):.*', '\\1', INFO) |> add_comma(), add_comma(POS)))
 
 TAG_PSV <- '70,951,946'
 VARS <- c('70,923,922', '70,951,020', '70,952,074')
@@ -99,7 +102,7 @@ ac_long <- as.data.frame(ac_matrix2) |>
     ungroup() |>
     arrange(var) |>
     mutate(
-        var = ifelse(var == TAG_PSV, sprintf('%s%s%s', '  ', var, ' ∗'), var),
+        var = sprintf('%s\n%s', var, pos2[var]),
         var = factor(var, levels = unique(var)),
         dosage = sprintf('%d/%d', ref, ref + alt),
         genotype = paste0(str_dup('A', times = ref), str_dup('a', times = alt)),
@@ -131,8 +134,8 @@ ggplot(bars) +
         panel.border = element_rect(color = 'gray80'),
         panel.grid = element_blank(),
         strip.background = element_rect(color = NA, fill = 'gray90'),
-        strip.text = element_text(margin = margin(2, 2, 2, 2)),
+        strip.text.x = element_text(margin = margin(2, 2, 2, 2)),
+        strip.text.y = element_text(size = 7, margin = margin(2, 2, 2, 2)),
         legend.position = 'none',
-        # axis.text.x = element_text(family = 'Fira Sans Condensed', size = 8),
     )
 ggsave('fig5.svg', width = 8, height = 5, scale = 0.75)

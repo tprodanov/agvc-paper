@@ -19,7 +19,7 @@ round_to <- function(x, precision) {
 }
 
 dupl_genes <- readLines('dupl_genes.txt')
-filenames <- Sys.glob('evals/*.csv.gz')
+filenames <- Sys.glob('evals-lowcompl0.2/*.csv.gz')
 
 full_roc <- lapply(filenames,
     function(filename) read.csv(filename, sep = '\t', comment = '#') |>
@@ -33,7 +33,7 @@ full_roc2 <- mutate(full_roc,
 
 # Trust Parascopy qual column, for other tools, use quality from the `QX` part of the filename.
 full_roc3 <- filter(full_roc2,
-    region != '*'
+    region != '*' & region != 'lowcompl'
     & (tool == 'parascopy' | (tool_qual == 'Q1' & qual == 'any') | (tool_qual == 'Q10' & qual == 'high'))) |>
     select(-tool_qual)
 
@@ -80,17 +80,43 @@ roc_long <- select(roc4, -c(tp_base, tp_call, fp, fn)) |>
     mutate(
         tool = recode_factor(tool, 'freebayes' = 'Freebayes', 'gatk' = 'GATK', 'parascopy' = 'Parascopy'),
         metric = recode_factor(metric, 'precision' = 'Precision', 'recall' = 'Recall', 'f1' = 'F₁ score'))
-roc_lwc <- mutate(roc_long, value = round_to(value, 0.02)) |>
+roc_lwc <- mutate(roc_long, value_round = round_to(value, 0.02)) |>
     select(-n_vars) |>
-    pivot_wider(names_from = 'tool', values_from = 'value')
+    pivot_wider(names_from = 'tool', values_from = c('value', 'value_round')) |>
+    rename_with(function(name) sub('value_', '', name) %>% sub('round_', 'rnd.', .), starts_with('value'))
 
 palette <- 'Rocket'
 legend_col <- colorspace::sequential_hcl(11, palette = palette)[3]
 
-ggplot(filter(roc_lwc, GATK < 1 | Parascopy < 1)) +
+gene_arrows <- filter(roc_lwc, gene %in% c('CFC1', 'NEB', 'SMN1')) |>
+    arrange(gene) |>
+    group_by(sample_type, metric) |>
+    mutate(
+        x_rank = rank(GATK, ties.method = 'first') - (n() + 1) / 2
+        ) |>
+    ungroup() |>
+    mutate(
+        x2 = rnd.GATK, y2 = rnd.Parascopy,
+        x = x2 + 0.1 * x_rank + 0.02,
+        y = ifelse(gene == 'NEB' & metric == 'Recall', 0.81, 0.87),
+        curvature = 2 * (x - x2))
+
+ggplot(filter(roc_lwc, rnd.GATK < 1 | rnd.Parascopy < 1)) +
     geom_abline(linewidth = 0.3, color = 'gray30') +
     annotate('rect', xmin = 1, ymin = 1, xmax = Inf, ymax = Inf, fill = 'white') +
-    geom_count(aes(GATK, Parascopy, color = - GATK + Parascopy)) +
+    lapply(split(gene_arrows, 1:nrow(gene_arrows)), function(dat) {
+        geom_curve(
+            aes(x = x, y = y, xend = x2, yend = y2),
+            data = dat,
+            color = legend_col,
+            curvature = dat['curvature'], ncp = 3, angle = 90, alpha = 0.5,
+            )
+    }) +
+    geom_label(aes(x, y, label = gene), data = gene_arrows,
+        color = legend_col, family = 'Source Sans 3', fontface = 'italic', vjust = 1., size = 3,
+        linewidth = 0., label.padding = unit(0.01, 'lines')
+        ) +
+    geom_count(aes(rnd.GATK, rnd.Parascopy, color = rnd.Parascopy - rnd.GATK)) +
     annotate('point', x = 1, y = 1, size = 2, color = 'gray25') +
     facet_grid(metric ~ sample_type, scales = 'free_x', space = 'free_x') +
     scale_x_continuous('GATK accuracy',
@@ -114,5 +140,34 @@ ggplot(filter(roc_lwc, GATK < 1 | Parascopy < 1)) +
         legend.text = element_text(margin = margin(l = -2, r = 2)),
         plot.margin = margin(2, 2, 2, 2)
     )
-ggsave('improv_recall.svg', width = 8, height = 6, scale = 0.8, bg = 'white')
+ggsave('gene_scatter_0.2.svg', width = 8, height = 6, scale = 0.8, bg = 'white')
 
+#####################
+
+# select(roc_lwc, sample_type, gene) |> unique() |> count(sample_type)
+# 
+# roc_lwc2 <- filter(roc_lwc, sample_type == 'GIAB')
+# with(roc_lwc2, sum(metric == 'Recall' & Parascopy > GATK))
+# with(roc_lwc2, sum(metric == 'Recall' & Parascopy > Freebayes))
+# with(roc_lwc2, sum(metric == 'Recall' & Parascopy > GATK + 0.25))
+# with(roc_lwc2, sum(metric == 'Recall' & Parascopy > Freebayes + 0.25))
+# with(roc_lwc2, sum(metric == 'Recall' & Parascopy > GATK + 0.1))
+# with(roc_lwc2, sum(metric == 'Recall' & Parascopy > Freebayes + 0.1))
+# 
+# filter(roc_lwc, gene == 'CFC1')
+# filter(roc_lwc, gene == 'SMN1')
+# filter(roc_lwc, gene == 'NEB')
+# 
+# seq_simil <- read.csv('~/Data/proj/parascopy/Benchmarks/regions/wg/simil/overlapped_genes.s0.99_m0.csv',
+#     sep = '\t', header = F) |> setNames(c('gene', 'seqsim'))
+# roc_lwc3 <- filter(roc_lwc, sample_type == 'Simulated' & metric == 'Recall') |>
+#     left_join(seq_simil, join_by(gene)) |>
+#     mutate(improv = Parascopy - GATK, is_simil = seqsim >= 3000)
+# #with(roc_lwc3, cor(improv > 0.25, is_simil))
+# #model <- glm(is_simil ~ improv, roc_lwc3, family = binomial(link = 'logit'))
+# 
+# a <- with(roc_lwc3, sum(improv <= 0.25 & !is_simil))
+# b <- with(roc_lwc3, sum(improv <= 0.25 & is_simil))
+# c <- with(roc_lwc3, sum(improv > 0.25 & !is_simil))
+# d <- with(roc_lwc3, sum(improv > 0.25 & is_simil))
+# fisher.test(matrix(c(a, b, c, d), nrow=2))
