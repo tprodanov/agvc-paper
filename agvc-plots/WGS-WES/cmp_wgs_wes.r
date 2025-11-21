@@ -10,7 +10,7 @@ suppressMessages(library(cowplot))
 suppressMessages(library(bit64))
 
 cowplot::set_null_device('agg')
-FONT <- 'Source Sans 3'
+FONT <- 'Roboto'
 
 cmp <- read.csv('cmp_WGS_WES.csv.gz', sep = '\t', comment = '#') |>
     filter(
@@ -27,20 +27,7 @@ cmp <- read.csv('cmp_WGS_WES.csv.gz', sep = '\t', comment = '#') |>
     separate(chr_pos, into = c('chr', 'pos'), sep = ':', convert = T, remove = F) |>
     mutate(rare = wgs_AF < 0.01)
 
-# Select one position from each cluster.
-decluster <- function(cmp, dist) {
-    last <- as.integer64(-2e9)
-    filter(cmp,
-        sapply(ext_pos, function(x) {
-           if (x - last >= dist) {
-               last <<- x;
-               T
-           } else {
-               F
-           }
-        }))
-}
-
+# Select one position from each cluster
 decluster <- function(cmp, n_points, diameter) {
     cmp <- mutate(cmp, ext_pos = as.numeric(factor(chr)) * as.integer64(1e9) + pos) |>
         arrange(ext_pos)
@@ -95,14 +82,14 @@ draw_subplot <- function(events_aggr, cn, rare) {
         scale_fill_manual(values = chess_colors, guide = 'none') +
         scale_color_manual(values = c('black', chess_colors[1]), guide = 'none') +
         scale_x_continuous(NULL,
-            labels = function(x) sprintf('%d/%d', x, cn),
+            labels = function(x) sprintf('%d⫽%d', x, cn),
             breaks = 0:cn, limits = c(minx - 0.5, maxx + 0.5), expand = expansion(),
             sec.axis = if (top) {
                 dup_axis(name = sprintf('Copy number %d', cn), breaks = NULL)
                 } else { waiver() }
             ) +
         scale_y_continuous(NULL,
-            labels = function(x) sprintf('%d/%d', x, cn),
+            labels = function(x) sprintf('%d⫽%d', x, cn),
             breaks = 0:cn, limits = c(miny - 0.5, maxy + 0.5), expand = expansion(),
             sec.axis = if (right) {
                 dup_axis(name = ifelse(rare, 'Rare\n(AF < 1%)', 'Common\n(AF ≥ 1%)'), breaks = NULL)
@@ -136,11 +123,11 @@ for (cn in c(4, 6)) {
 }
 
 x_lab <- ggplot() + 
-  annotate(geom = 'text', x = 0, y = 0, label = 'WES allele dosage', family = FONT) +
+  annotate(geom = 'text', x = 0, y = 0, label = 'WES aggregate genotype', family = FONT) +
   coord_cartesian(clip = 'off') +
   theme_void()
 y_lab <- ggplot() + 
-  annotate(geom = 'text', x = 0, y = 0, label = 'WGS allele dosage', family = FONT, angle = 90) +
+  annotate(geom = 'text', x = 0, y = 0, label = 'WGS aggregate genotype', family = FONT, angle = 90) +
   coord_cartesian(clip = 'off') +
   theme_void()
 
@@ -207,17 +194,3 @@ cowplot::plot_grid(g_ev, g_af,
     label_x = c(0, 0)
     )
 ggsave('concordance.svg', bg = 'white', width = 10, height = 5, dpi = 500, scale = 0.72)
-
-#################
-
-# group_by(events, gt_cn, rare) |>
-#     filter(gt_cn %in% c(4, 6)) |>
-#     summarize(
-#         n_vars = length(unique(pos)),
-#         n_gts = sum(count),
-#         concordance = sum((wes_ac == wgs_ac) * count) / n_gts, .groups = 'keep') |>
-#     ungroup() |>
-#     as.data.frame()
-# 
-# filter(events, gt_cn %in% c(4, 6) & rare) |>
-#     summarize(n_vars = length(unique(pos)), n_gts = sum(count))

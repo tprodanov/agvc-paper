@@ -28,6 +28,7 @@ gts2 <- filter(gts, qual >= 10) |>
     group_by(pop) |> mutate(perc = 100 * n / sum(n)) |> ungroup() |>
     complete(pop, ac0, fill = list(n = 0, perc = 0))
 
+FONT <- 'Roboto'
 fill_colors <- c('#001219', '#005f73', '#ca6702', '#ae2012') |>
     setNames(as.character(1:4))
 (zoomed <- ggplot(filter(gts2, ac0 != 2)) +
@@ -41,7 +42,7 @@ fill_colors <- c('#001219', '#005f73', '#ca6702', '#ae2012') |>
     scale_fill_manual(values = fill_colors) +
     theme_bw() +
     theme(
-        text = element_text(family = 'Carlito'),
+        text = element_text(family = FONT),
         panel.border = element_blank(),
         panel.grid = element_blank(),
         legend.position = 'none',
@@ -55,11 +56,11 @@ fill_colors <- c('#001219', '#005f73', '#ca6702', '#ae2012') |>
         breaks = seq(0, 100, 20),
         expand = c(0, 0), limits = c(0, 100)) +
     scale_x_discrete(NULL, expand = expansion(add = 0.48)) +
-    scale_fill_manual('GTGT allele dosage', values = fill_colors,
-        labels = function(x) sprintf('%s/K', x)) +
+    scale_fill_manual('Aggregate genotype', values = fill_colors,
+        labels = function(x) sprintf('%s⫽K', x)) +
     theme_bw() +
     theme(
-        text = element_text(family = 'Carlito'),
+        text = element_text(family = FONT),
         panel.border = element_blank(),
         panel.grid = element_blank(),
         legend.position = 'top',
@@ -82,22 +83,22 @@ colors <- c('#001219', '#0a9396', '#ee9b00', '#ae2012') |>
     geom_point(aes(ad0, ad1, color = factor(ac0), shape = qual < 10), size = 1.) +
     scale_x_continuous('Reads supporting GTGT allele') +
     scale_y_continuous('Reads supporting GT allele') +
-    scale_color_manual('GTGT allele dosage',
-        values = colors, labels = function(x) sprintf('%s/6', x)) +
+    scale_color_manual('Aggregate genotype',
+        values = colors, labels = function(x) sprintf('%s⫽6', x)) +
     scale_shape_manual('Quality', values = c(19, 4), labels = c('High', 'Low')) +
     guides(
         color = guide_legend(order = 1, override.aes = list(size = 2)),
         shape = guide_legend(order = 2, override.aes = list(size = 2))) +
     theme_bw() +
     theme(
-        text = element_text(family = 'Carlito'),
+        text = element_text(family = FONT),
         panel.border = element_blank(),
         panel.grid = element_blank(),
         legend.position = 'top',
         legend.box = 'vertical',
         legend.spacing.y = unit(-0.25, 'lines'),
         legend.box.margin = margin(t = -4, b = -4),
-        legend.margin = margin(r = 20),
+        legend.margin = margin(r = 25),
         legend.background = element_blank(),
         # legend.title = element_text(margin = margin()),
         legend.text = element_text(
@@ -115,4 +116,4 @@ ggdraw(xlim = c(0, 3.3), ylim = c(0, 1)) +
         color = 'gray40', linetype = '32') +
     annotate('segment', x = 1.0, xend = 1.1, y = 0.248, yend = 0.96,
         color = 'gray40', linetype = '32')
-ggsave('ncf1_b-d.svg', width = 8, height = 4, dpi = 600)
+ggsave('ncf1_b-d.svg', width = 8, height = 4, dpi = 600, scale = 1.05)

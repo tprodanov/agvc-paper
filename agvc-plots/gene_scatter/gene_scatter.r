@@ -101,6 +101,7 @@ gene_arrows <- filter(roc_lwc, gene %in% c('CFC1', 'NEB', 'SMN1')) |>
         y = ifelse(gene == 'NEB' & metric == 'Recall', 0.81, 0.87),
         curvature = 2 * (x - x2))
 
+FONT <- 'Roboto'
 ggplot(filter(roc_lwc, rnd.GATK < 1 | rnd.Parascopy < 1)) +
     geom_abline(linewidth = 0.3, color = 'gray30') +
     annotate('rect', xmin = 1, ymin = 1, xmax = Inf, ymax = Inf, fill = 'white') +
@@ -113,7 +114,7 @@ ggplot(filter(roc_lwc, rnd.GATK < 1 | rnd.Parascopy < 1)) +
             )
     }) +
     geom_label(aes(x, y, label = gene), data = gene_arrows,
-        color = legend_col, family = 'Source Sans 3', fontface = 'italic', vjust = 1., size = 3,
+        color = legend_col, family = FONT, fontface = 'italic', vjust = 1., size = 3,
         linewidth = 0., label.padding = unit(0.01, 'lines')
         ) +
     geom_count(aes(rnd.GATK, rnd.Parascopy, color = rnd.Parascopy - rnd.GATK)) +
@@ -129,6 +130,7 @@ ggplot(filter(roc_lwc, rnd.GATK < 1 | rnd.Parascopy < 1)) +
         size = guide_legend(override.aes = list(color = legend_col, alpha = 0.8))) +
     theme_bw() +
     theme(
+        text = element_text(family = FONT),
         panel.grid = element_blank(),
         strip.background = element_rect(color = NA, fill = NA),
         strip.text = element_text(margin = margin(2, 2, 2, 2), face = 'bold'),
@@ -141,33 +143,3 @@ ggplot(filter(roc_lwc, rnd.GATK < 1 | rnd.Parascopy < 1)) +
         plot.margin = margin(2, 2, 2, 2)
     )
 ggsave('gene_scatter_0.2.svg', width = 8, height = 6, scale = 0.8, bg = 'white')
-
-#####################
-
-# select(roc_lwc, sample_type, gene) |> unique() |> count(sample_type)
-# 
-# roc_lwc2 <- filter(roc_lwc, sample_type == 'GIAB')
-# with(roc_lwc2, sum(metric == 'Recall' & Parascopy > GATK))
-# with(roc_lwc2, sum(metric == 'Recall' & Parascopy > Freebayes))
-# with(roc_lwc2, sum(metric == 'Recall' & Parascopy > GATK + 0.25))
-# with(roc_lwc2, sum(metric == 'Recall' & Parascopy > Freebayes + 0.25))
-# with(roc_lwc2, sum(metric == 'Recall' & Parascopy > GATK + 0.1))
-# with(roc_lwc2, sum(metric == 'Recall' & Parascopy > Freebayes + 0.1))
-# 
-# filter(roc_lwc, gene == 'CFC1')
-# filter(roc_lwc, gene == 'SMN1')
-# filter(roc_lwc, gene == 'NEB')
-# 
-# seq_simil <- read.csv('~/Data/proj/parascopy/Benchmarks/regions/wg/simil/overlapped_genes.s0.99_m0.csv',
-#     sep = '\t', header = F) |> setNames(c('gene', 'seqsim'))
-# roc_lwc3 <- filter(roc_lwc, sample_type == 'Simulated' & metric == 'Recall') |>
-#     left_join(seq_simil, join_by(gene)) |>
-#     mutate(improv = Parascopy - GATK, is_simil = seqsim >= 3000)
-# #with(roc_lwc3, cor(improv > 0.25, is_simil))
-# #model <- glm(is_simil ~ improv, roc_lwc3, family = binomial(link = 'logit'))
-# 
-# a <- with(roc_lwc3, sum(improv <= 0.25 & !is_simil))
-# b <- with(roc_lwc3, sum(improv <= 0.25 & is_simil))
-# c <- with(roc_lwc3, sum(improv > 0.25 & !is_simil))
-# d <- with(roc_lwc3, sum(improv > 0.25 & is_simil))
-# fisher.test(matrix(c(a, b, c, d), nrow=2))

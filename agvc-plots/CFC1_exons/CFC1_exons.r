@@ -73,6 +73,7 @@ EXON_Y1 <- -0.4
 EXON_Y2 <- 0.4
 Y_SHIFT <- 1.5
 
+FONT <- 'Roboto'
 ggplot(exons) +
     geom_hline(yintercept = 0, color = 'gray10', linetype = '11') +
     geom_curve(
@@ -87,12 +88,12 @@ ggplot(exons) +
         ) +
     geom_text(aes(x = text_x, y = EXON_Y1 - Y_SHIFT, label = impact_short, color = type2),
         data = vars_btm,
-        angle = 90, hjust = 1, family = 'Carlito', show.legend = F,
+        angle = 90, hjust = 1, family = FONT, show.legend = F,
         lineheight = 0.6, size = 2.5,
         ) +
     geom_text(aes(x = text_x, y = EXON_Y2 + Y_SHIFT, label = impact_short, color = type2),
         data = vars_top,
-        angle = 90, hjust = 0, family = 'Carlito', show.legend = F,
+        angle = 90, hjust = 0, family = FONT, show.legend = F,
         lineheight = 0.6, size = 2.5,
         ) +
     geom_rrect(aes(xmin = xstart, xmax = xend, ymin = EXON_Y1, ymax = EXON_Y2),
@@ -111,7 +112,7 @@ ggplot(exons) +
     theme(
         panel.border = element_blank(),
         panel.grid = element_blank(),
-        text = element_text(family = 'Carlito'),
+        text = element_text(family = FONT),
         legend.position = 'top',
         legend.margin = margin(b = -15),
         legend.box = 'vertical',

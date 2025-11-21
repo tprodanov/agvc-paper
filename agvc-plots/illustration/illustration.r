@@ -6,19 +6,20 @@ suppressMessages(library(colorspace))
 
 colors <- sequential_hcl(7, 'Dark mint')[5:1]
 
-for (panel in c('c', 'd')) {
-    df <- read.csv(sprintf('fig1%s.data.csv', panel), sep = '\t')
+FONT <- 'Roboto'
+for (i in 1:2) {
+    df <- read.csv(sprintf('data%d.csv', i), sep = '\t')
     ggplot(df) +
         geom_bar(aes(ref_dosage, perc, fill = factor(ref_dosage)), stat = 'identity') +
         facet_grid(. ~ group) +
-        scale_x_continuous('Allele dosage',
+        scale_x_continuous('Aggregate genotype',
             expand = expansion(add = 0.2), breaks = 0:4,
-            labels = function (x) sprintf('%d/4', x)) +
+            labels = function (x) sprintf('%d⫽4', x)) +
         scale_y_continuous(expand = expansion(add = c(1, 5))) +
         scale_fill_manual(values = colors) +
         theme_bw() +
         theme(
-            text = element_text(family = 'Carlito'),
+            text = element_text(family = FONT),
             panel.border = element_rect(color = 'black'),
             panel.grid = element_blank(),
             axis.title.x = element_text(size = 9),
@@ -31,6 +32,6 @@ for (panel in c('c', 'd')) {
             legend.position = 'none',
             plot.margin = margin(1, 1, 1, 1),
         )
-    ggsave(sprintf('fig1%s.svg', panel),
-        width = 3.5, height = 2, scale = 0.65)
+    ggsave(sprintf('subplot%s.svg', i),
+        width = 4.5, height = 2, scale = 0.65)
 }

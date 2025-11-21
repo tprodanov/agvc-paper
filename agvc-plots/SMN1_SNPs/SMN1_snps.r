@@ -104,7 +104,7 @@ ac_long <- as.data.frame(ac_matrix2) |>
     mutate(
         var = sprintf('%s\n%s', var, pos2[var]),
         var = factor(var, levels = unique(var)),
-        dosage = sprintf('%d/%d', ref, ref + alt),
+        dosage = sprintf('%d⫽%d', ref, ref + alt),
         genotype = paste0(str_dup('A', times = ref), str_dup('a', times = alt)),
     )
 panel_sizes <- count(ac_long, var, cn, name = 'panel_size')
@@ -114,21 +114,22 @@ bars <- count(ac_long, var, dosage, genotype, ref, cn, name = 'bar_size') |>
 
 colors <- colorspace::sequential_hcl(7, 'Dark mint')[5:1] |>
     setNames(as.character(0:4))
+FONT <- 'Roboto'
 ggplot(bars) +
     geom_bar(aes(dosage, perc, fill = as.character(ref)), stat = 'identity') +
     geom_text(aes(dosage, perc, label = bar_size),
         vjust = ifelse(bars$perc >= LIMIT, 1.3, -0.3),
         color = ifelse(bars$perc >= LIMIT, 'white', colors[5]),
-        size = 2, family = 'Carlito') +
+        size = 2.5, family = FONT) +
     facet_grid(var ~ cn, scales = 'free_x', space = 'free_x') +
-    scale_x_discrete('Allele dosage') +
+    scale_x_discrete('Aggregate genotype') +
     scale_y_continuous('Percentage of samples', breaks = c(0, 50, 100),
         expand = expansion(add = c(1, 5))) +
     scale_fill_manual(values = colors) +
     ggtitle('*SMN1, SMN2* copy number') +
     theme_bw() +
     theme(
-        text = element_text(family = 'Carlito'),
+        text = element_text(family = FONT),
         plot.title = ggtext::element_markdown(size = 10, hjust = 0.5,
             margin = margin(b = 2)),
         panel.border = element_rect(color = 'gray80'),
@@ -138,4 +139,4 @@ ggplot(bars) +
         strip.text.y = element_text(size = 7, margin = margin(2, 2, 2, 2)),
         legend.position = 'none',
     )
-ggsave('fig5.svg', width = 8, height = 5, scale = 0.75)
+ggsave('SMN1_snps.svg', width = 8, height = 5, scale = 0.75)

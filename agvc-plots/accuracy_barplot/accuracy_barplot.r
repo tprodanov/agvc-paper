@@ -55,7 +55,7 @@ nvars <- filter(roc, tool == 'Parascopy' & psv_type != 'Trivial PSVs') |>
     ungroup() |>
     mutate(metric = 'Recall')
 
-FONT <- 'Source Sans 3'
+FONT <- 'Roboto'
 
 draw_plot <- function(df, sample) {
     colors <- c('#5576A0', '#EF7747', '#FFDD87')
@@ -112,14 +112,3 @@ cowplot::plot_grid(
     ) |>
     suppressWarnings()
 ggsave('barplot.svg', width = 10, height = 6, scale = 0.7)
-
-# filter(roc_long2, sample == 'Simulated', difficulty != 'All duplications') |>
-#     mutate(value = round(value, 2))
-# 
-# filter(roc_long2, sample == 'Simulated' & tool == 'GATK') |>
-#     mutate(value = round(value, 2))
-# 
-# filter(roc_long2, sample %in% c('Simulated', 'HG007') &
-#         difficulty == 'All duplications' & tool == 'Freebayes') |>
-#     mutate(value = round(value, 2)) |>
-#     arrange(psv_type, metric, desc(sample))
