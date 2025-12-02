@@ -136,7 +136,7 @@ ggplot(bars) +
         panel.grid = element_blank(),
         strip.background = element_rect(color = NA, fill = 'gray90'),
         strip.text.x = element_text(margin = margin(2, 2, 2, 2)),
-        strip.text.y = element_text(size = 7, margin = margin(2, 2, 2, 2)),
+        strip.text.y = element_text(margin = margin(2, 2, 2, 2)),
         legend.position = 'none',
     )
-ggsave('SMN1_snps.svg', width = 8, height = 5, scale = 0.75)
+ggsave('SMN1_snps.svg', width = 8, height = 5, scale = 0.8)

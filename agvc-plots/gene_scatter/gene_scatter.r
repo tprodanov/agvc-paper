@@ -143,3 +143,6 @@ ggplot(filter(roc_lwc, rnd.GATK < 1 | rnd.Parascopy < 1)) +
         plot.margin = margin(2, 2, 2, 2)
     )
 ggsave('gene_scatter_0.2.svg', width = 8, height = 6, scale = 0.8, bg = 'white')
+
+filter(roc_lwc, metric == 'Recall' & sample_type == 'GIAB') |>
+    with(sum(Parascopy - GATK > 0.1))
